@@ -1,0 +1,140 @@
+import React, { useState } from 'react';
+import { 
+  MessageCircle, FileUp, BookOpen, Brain, Zap, Languages, CheckCircle, 
+  Share2, BarChart3, FileText, Image as ImageIcon, LayoutGrid, Rss, Layers, 
+  TableProperties, FileOutput 
+} from 'lucide-react';
+
+export default function App() {
+  const [apiKey, setApiKey] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [messages, setMessages] = useState([{ role: 'bot', content: 'Welcome! Please connect your API key to begin.' }]);
+  const [userInput, setUserInput] = useState('');
+  const [language, setLanguage] = useState('English');
+  const [files, setFiles] = useState([]);
+
+  const languages = [
+    'English', 'Urdu (اردو)', 'Arabic (العربية)', 'French (Français)', 
+    'Spanish (Español)', 'German (Deutsch)', 'Mandarin (普通话)', 'Japanese (日本語)'
+  ];
+
+  const tools = [
+    { name: 'Summarize', icon: BookOpen },
+    { name: 'Generate Quiz', icon: Brain },
+    { name: 'Flashcards', icon: Zap },
+    { name: 'Mind Map', icon: Share2 },
+    { name: 'Infographic', icon: ImageIcon },
+    { name: 'Slide Deck', icon: LayoutGrid },
+    { name: 'Data Table', icon: TableProperties },
+    { name: 'Briefing Doc', icon: FileOutput },
+    { name: 'Blog Post', icon: Rss }
+  ];
+
+  const handleApiConnection = () => {
+    if (apiKey.trim().length > 15) {
+      setIsConnected(true);
+      setMessages(prev => [...prev, { role: 'bot', content: 'Connected successfully! You can now analyze your documents.' }]);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const uploadedFiles = Array.from(e.target.files);
+    setFiles([...files, ...uploadedFiles]);
+  };
+
+  const sendMessage = () => {
+    if (!userInput.trim()) return;
+    setMessages([...messages, { role: 'user', content: userInput }]);
+    setUserInput('');
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: 'bot', content: `Based on your material: "Simplified explanation for ${userInput}." [Reference: P.12]` }]);
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
+      <nav className="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+        <h1 className="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+          <Layers className="text-indigo-600" /> EduAI Pro
+        </h1>
+        <div className="flex items-center gap-4">
+          <select 
+            value={language} 
+            onChange={(e) => setLanguage(e.target.value)}
+            className="border p-2 rounded-lg bg-gray-50 text-sm"
+          >
+            {languages.map(lang => <option key={lang}>{lang}</option>)}
+          </select>
+          <div className="flex items-center gap-2 border p-1 rounded-lg">
+            <input 
+              type="password"
+              placeholder="API Key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="px-2 py-1 outline-none text-sm w-32"
+            />
+            <button 
+              onClick={handleApiConnection} 
+              className={`p-2 rounded-md ${isConnected ? 'bg-green-100' : 'bg-gray-100'}`}
+              title="Connect API"
+            >
+              <CheckCircle size={16} className={isConnected ? 'text-green-600' : 'text-gray-400'} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 p-6 overflow-y-auto">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border mb-6">
+            <h2 className="text-lg font-semibold mb-3">Upload Materials</h2>
+            <div className="border-2 border-dashed p-8 text-center rounded-xl hover:border-indigo-400 transition cursor-pointer">
+              <input type="file" multiple onChange={handleFileUpload} className="hidden" id="fileInput" />
+              <label htmlFor="fileInput" className="cursor-pointer text-indigo-600 font-medium">
+                Drag & Drop or Click to Upload PDFs, PPTs, Images
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {files.map((f, i) => (
+                <span key={i} className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">{f.name}</span>
+              ))}
+            </div>
+          </div>
+
+          <h2 className="text-xl font-bold mb-4">Study Toolkit</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {tools.map((tool, i) => (
+              <button key={i} className="bg-white p-4 rounded-xl shadow-sm border flex flex-col items-center gap-3 hover:border-indigo-400 hover:shadow-md transition">
+                <tool.icon className="text-indigo-600" size={24} />
+                <span className="font-medium text-sm">{tool.name}</span>
+              </button>
+            ))}
+          </div>
+        </main>
+
+        <aside className="w-80 bg-white border-l flex flex-col shadow-lg z-20">
+          <div className="p-4 border-b font-semibold bg-gray-50 flex items-center justify-between">
+            <span>AI Assistant</span>
+            <MessageCircle size={20} className="text-indigo-600" />
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((m, i) => (
+              <div key={i} className={`p-3 rounded-xl text-sm max-w-[90%] ${m.role === 'user' ? 'bg-indigo-600 text-white ml-auto' : 'bg-gray-100 text-gray-800'}`}>
+                {m.content}
+              </div>
+            ))}
+          </div>
+          <div className="p-4 border-t">
+            <input 
+              value={userInput} 
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="Ask about your content..."
+              className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
